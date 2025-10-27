@@ -1,1 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Weather Info</title>
+  <link rel="icon" href="https://shourov.top/shourovtop1.png" type="image/png" sizes="96x96">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #74ABE2, #5563DE);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      padding: 25px 30px;
+      border-radius: 15px;
+      text-align: center;
+      width: 320px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    .temp {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .details {
+      text-align: left;
+      margin-top: 15px;
+    }
+    .details p {
+      font-size: 1rem;
+      margin: 5px 0;
+    }
+    .manual-input {
+      margin-top: 15px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+    .manual-input input {
+      padding: 8px;
+      margin: 5px;
+      width: 120px;
+      border-radius: 5px;
+      border: none;
+      text-align: center;
+    }
+    button {
+      background: #00c6ff;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      border-radius: 5px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button:hover {
+      background: #0072ff;
+    }
+    footer {
+      margin-top: 20px;
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
 
+  <div class="card" id="weather-card">
+    <h1>Weather Information</h1>
+    <div id="loading">Detecting location...</div>
+    <div id="weather-data" style="display:none;">
+      <div class="temp" id="temperature"></div>
+      <div class="details">
+        <p><strong>Wind Speed:</strong> <span id="windspeed"></span> km/h</p>
+        <p><strong>Wind Direction:</strong> <span id="winddirection"></span>°</p>
+        <p><strong>Weather Code:</strong> <span id="weathercode"></span></p>
+        <p><strong>Day/Night:</strong> <span id="is_day"></span></p>
+        <p><strong>Time:</strong> <span id="time"></span></p>
+      </div>
+    </div>
+
+    <div class="manual-input" id="manual-input">
+      <h3>Enter location manually</h3>
+      <input type="number" id="lat" placeholder="Latitude">
+      <input type="number" id="lon" placeholder="Longitude">
+      <button onclick="getManualWeather()">Get Weather</button>
+    </div>
+  </div>
+
+  <footer>© 2025 SHOUROV DIGITAL LTD</footer>
+
+  <script>
+    const apiBase = "https://api.open-meteo.com/v1/forecast?current_weather=true";
+    const loading = document.getElementById("loading");
+    const weatherCard = document.getElementById("weather-data");
+    const manualInput = document.getElementById("manual-input");
+
+    function fetchWeather(lat, lon) {
+      loading.textContent = "Loading weather data...";
+      fetch(`${apiBase}&latitude=${lat}&longitude=${lon}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.current_weather) {
+            showWeather(data.current_weather);
+          } else {
+            loading.textContent = "No weather data found.";
+          }
+        })
+        .catch(() => {
+          loading.textContent = "Error fetching weather.";
+        });
+    }
+
+    function showWeather(weather) {
+      loading.style.display = "none";
+      weatherCard.style.display = "block";
+
+      document.getElementById("temperature").textContent = `${weather.temperature}°C`;
+      document.getElementById("windspeed").textContent = weather.windspeed;
+      document.getElementById("winddirection").textContent = weather.winddirection;
+      document.getElementById("weathercode").textContent = weather.weathercode;
+      document.getElementById("is_day").textContent = weather.is_day ? "Day" : "Night";
+      document.getElementById("time").textContent = weather.time;
+    }
+
+    function getManualWeather() {
+      const lat = document.getElementById("lat").value;
+      const lon = document.getElementById("lon").value;
+      if (lat && lon) fetchWeather(lat, lon);
+    }
+
+    // Get geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude.toFixed(2);
+          const lon = pos.coords.longitude.toFixed(2);
+          fetchWeather(lat, lon);
+        },
+        (err) => {
+          loading.textContent = "Location permission denied.";
+          manualInput.style.display = "flex";
+        }
+      );
+    } else {
+      loading.textContent = "Geolocation not supported.";
+      manualInput.style.display = "flex";
+    }
+  </script>
+
+</body>
+  </html>
